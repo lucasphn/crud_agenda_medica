@@ -5,8 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
 load_dotenv()
-SQLALCHEMY_DATABASE_URL = os.environ.get('URL_DATABASE_POSTGRES')
-
+# SQLALCHEMY_DATABASE_URL = os.environ.get('URL_DATABASE_POSTGRES') preparado para receber uma variável de ambiente
+SQLALCHEMY_DATABASE_URL = 'postgresql://user:password@postgres/mydatabase'
 # Criando o motor do banco de dados
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
