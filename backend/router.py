@@ -1,51 +1,54 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal, get_db
-from schemas import ProductResponse, ProductUpdate, ProductCreate
+from schemas import AgendaResponse, AgendaUpdate, AgendaCreate
 from typing import List
 from crud import (
-    create_product,
-    get_products,
-    get_product,
-    delete_product,
-    update_product,
+    create_agendamento,
+    get_agendamentos,
+    get_agendamento,
+    delete_agendamento,
+    update_agendamento,
 )
+
+'''
+Aqui neste arquivo vamos trasnformar todas as nossas funções do crud em requisições de uma API que irá se comunicar com o nosso banco de dados
+
+'''
 
 router = APIRouter()
 
 
-@router.post("/products/", response_model=ProductResponse)
-def create_product_route(product: ProductCreate, db: Session = Depends(get_db)):
-    return create_product(db=db, product=product)
+@router.post("/agenda/", response_model=AgendaResponse)
+def create_agenda_route(agendamento: AgendaCreate, db: Session = Depends(get_db)):
+    return create_agendamento(db=db, agenda=agendamento)
 
 
-@router.get("/products/", response_model=List[ProductResponse])
-def read_all_products_route(db: Session = Depends(get_db)):
-    products = get_products(db)
-    return products
+@router.get("/agenda/", response_model=List[AgendaResponse])
+def read_all_agenda_route(db: Session = Depends(get_db)):
+    agendamentos = get_agendamentos(db)
+    return agendamentos
 
+# SELECT de um agendamento específico
+@router.get("/agenda/{id_agendamento}", response_model=AgendaResponse)
+def read_agendamento_route(id_agendamento: int, db: Session = Depends(get_db)):
+    db_agendamento = get_agendamento(db, id_agendamento=id_agendamento)
+    if db_agendamento is None:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado. Tente outro código, por favor.")
+    return db_agendamento
 
-@router.get("/products/{product_id}", response_model=ProductResponse)
-def read_product_route(product_id: int, db: Session = Depends(get_db)):
-    db_product = get_product(db, product_id=product_id)
-    if db_product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return db_product
+# DELETE de um agendamento específico
+@router.delete("/agenda/{id_agendamento}", response_model=AgendaResponse)
+def detele_agendamento_route(id_agendamento: int, db: Session = Depends(get_db)):
+    db_agendamento = delete_agendamento(db, id_agendamento=id_agendamento)
+    if db_agendamento is None:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado. Tente outro código, por favor.")
+    return db_agendamento
 
-
-@router.delete("/products/{product_id}", response_model=ProductResponse)
-def detele_product_route(product_id: int, db: Session = Depends(get_db)):
-    db_product = delete_product(db, product_id=product_id)
-    if db_product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return db_product
-
-
-@router.put("/products/{product_id}", response_model=ProductResponse)
-def update_product_route(
-    product_id: int, product: ProductUpdate, db: Session = Depends(get_db)
-):
-    db_product = update_product(db, product_id=product_id, product=product)
-    if db_product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return db_product
+# UPDATE de um agendamento específico
+@router.put("/agenda/{id_agendamento}", response_model=AgendaResponse)
+def update_agendamento_route(id_agendamento: int, agenda: AgendaUpdate, db: Session = Depends(get_db)):
+    db_agendamento = update_agendamento(db, id_agendamento=id_agendamento, agenda=agenda)
+    if db_agendamento is None:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado. Tente outro código, por favor.")
+    return db_agendamento

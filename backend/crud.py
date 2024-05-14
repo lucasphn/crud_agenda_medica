@@ -1,54 +1,63 @@
 from sqlalchemy.orm import Session
-from schemas import ProductUpdate, ProductCreate
-from models import ProductModel
+from schemas import AgendaUpdate, AgendaCreate
+from models import AgendaModel
 
-def get_product(db: Session, product_id: int):
+def get_agendamento(db: Session, id_agendamento: int):
     """
     função que recebe um id e retorna somente ele
     """
-    return db.query(ProductModel).filter(ProductModel.id == product_id).first()
+    return db.query(AgendaModel).filter(AgendaModel.id == id_agendamento).first()
 
-def get_products(db: Session):
+def get_agendamentos(db: Session):
     """
     função que retorna todos os elementos
     """
-    return db.query(ProductModel).all()
+    return db.query(AgendaModel).all()
 
-def create_product(db: Session, product: ProductCreate):
+def create_agendamento(db: Session, agenda: AgendaCreate):
     """
-    função que insere um novo produto no banco
+    função que insere um novo agendamento no banco
     """
-    db_product = ProductModel(**product.model_dump())
-    db.add(db_product)
+    db_agendamento = AgendaModel(**agenda.model_dump())
+    db.add(db_agendamento)
     db.commit()
-    db.refresh(db_product)
-    return db_product
+    db.refresh(db_agendamento)
+    return db_agendamento
 
-def delete_product(db: Session, product_id: int):
+def delete_agendamento(db: Session, id_agendamento: int):
     """
-    função que deleta um produto no banco
+    função que deleta um agendamento no banco
     """
-    db_product = db.query(ProductModel).filter(ProductModel.id == product_id).first()
-    db.delete(db_product)
+    db_agendamento = db.query(AgendaModel).filter(AgendaModel.id == id_agendamento).first()
+    db.delete(db_agendamento)
     db.commit()
-    return db_product
+    return db_agendamento
 
-def update_product(db: Session, product_id: int, product: ProductUpdate):
-    db_product = db.query(ProductModel).filter(ProductModel.id == product_id).first()
+def update_agendamento(db: Session, id_agendamento: int, agenda: AgendaUpdate):
+    """
+    função que atualiza um agendamento específico
+    """
+    db_agendamento = db.query(AgendaModel).filter(AgendaModel.id == id_agendamento).first()
 
-    if db_product is None:
+    if db_agendamento is None:
         return None
 
-    if product.name is not None:
-        db_product.name = product.name
-    if product.description is not None:
-        db_product.description = product.description
-    if product.price is not None:
-        db_product.price = product.price
-    if product.categoria is not None:
-        db_product.categoria = product.categoria
-    if product.email_fornecedor is not None:
-        db_product.email_fornecedor = product.email_fornecedor
+    if agenda.data_agendada is not None:
+        db_agendamento.data_agendada = agenda.data_agendada
+    if agenda.hora_agendada is not None:
+        db_agendamento.hora_agendada = agenda.hora_agendada
+    if agenda.nome_paciente is not None:
+        db_agendamento.nome_paciente = agenda.nome_paciente
+    if agenda.nome_medico is not None:
+        db_agendamento.nome_medico = agenda.nome_medico
+    if agenda.categoria_agendamento is not None:
+        db_agendamento.categoria_agendamento = agenda.categoria_agendamento
+    if agenda.price is not None:
+        db_agendamento.price = agenda.price
+    if agenda.email_paciente is not None:
+        db_agendamento.email_paciente = agenda.email_paciente
+    if agenda.description is not None:
+        db_agendamento.description = agenda.description
 
     db.commit()
-    return db_product
+    return db_agendamento

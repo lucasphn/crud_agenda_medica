@@ -1,51 +1,101 @@
 from pydantic import BaseModel, PositiveFloat, EmailStr, validator, Field
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
-class CategoriaBase(Enum):
-    categoria1 = 'Eletrônico'
-    categoria2 = 'Eletrodoméstico'
-    categoria3 = 'Móveis'
-    categoria4 = 'Roupas'
-    categoria5 = 'Calçados'
+class HoraBase(Enum):
+    hora1 = '9:00'
+    hora2 = '9:30'
+    hora3 = '10:00'
+    hora4 = '10:30'
+    hora5 = '11:00'
+    hora6 = '11:30'
+    hora7 = '12:00'
+    hora8 = '13:30' 
+    hora9 = '14:00'
+    hora10 = '14:30'
+    hora11 = '15:00'
+    hora12 = '15:30'
+    hora13 = '16:00'
+    hora14 = '16:30'
+    hora15 = '17:00'
 
+class NomeMedicos(Enum):
+    medico1 = 'Sarah Maria de Almeida'
+    medico2 = 'Catarina Maria de Almeida'
+    medico3 = 'Augusto Emanuel de Almeida'
+    medico4 = 'Tomás Emanuel de Almeida'
 
-class ProductBase(BaseModel):
-    name: str
-    description: Optional[str] = None
+class TiposAgendamento(Enum):
+    tipo1 = 'Consulta'
+    tipo2 = 'Retorno'
+    tipo3 = 'Exames'
+    tipo4 = 'Cirurgias'
+
+class AgendaBase(BaseModel):
+    data_agendada: date
+    hora_agendada: str
+    nome_paciente: str
+    nome_medico: str
+    categoria_agendamento: str
     price: PositiveFloat
-    categoria: str
-    email_fornecedor: EmailStr
+    email_paciente: EmailStr
+    description: Optional[str] = None
 
-    @validator('categoria')
-    def check_categoria(cls, v):
-        if v in [item.value for item in CategoriaBase]:
+    @validator('hora_agendada')
+    def check_hora(cls, v):
+        if v in [item.value for item in HoraBase]:
             return v
-        raise ValueError('Categoria Inválida')
+        raise ValueError('Hora Inválida')
 
-class ProductCreate(ProductBase):
+    @validator('nome_medico')
+    def check_medicos(cls, v):
+        if v in [item.value for item in NomeMedicos]:
+            return v
+        raise ValueError('Nome Inválido')
+
+    @validator('categoria_agendamento')
+    def check_tipos(cls, v):
+        if v in [item.value for item in TiposAgendamento]:
+            return v
+        raise ValueError('Tipo Inválido')
+
+class AgendaCreate(AgendaBase):
     pass 
 
-class ProductResponse(ProductBase):
+class AgendaResponse(AgendaBase):
     id: int
     created_at: datetime
 
     class Config:
         orm_mode = True
 
-class ProductUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    price: Optional[PositiveFloat] = None
-    categoria: Optional[str] = None
-    email_fornecedor: Optional[EmailStr] = None
+class AgendaUpdate(BaseModel):
 
-    @validator('categoria', pre=True, always=True)
-    def check_categoria(cls, v):
-        if v is None:
+    data_agendada: Optional[date] = None
+    hora_agendada: Optional[str] = None
+    nome_paciente: Optional[str] = None
+    nome_medico: Optional[str] = None
+    categoria_agendamento: Optional[str] = None
+    price: Optional[PositiveFloat] = None
+    email_paciente: Optional[EmailStr] = None
+    description: Optional[str] = None
+ 
+    @validator('hora_agendada')
+    def check_hora(cls, v):
+        if v in [item.value for item in HoraBase]:
             return v
-        if v in [item.value for item in CategoriaBase]:
+        raise ValueError('Hora Inválida')
+
+    @validator('nome_medico')
+    def check_medicos(cls, v):
+        if v in [item.value for item in NomeMedicos]:
             return v
-        raise ValueError('Categoria Inválida')
+        raise ValueError('Nome Inválido')
+
+    @validator('categoria_agendamento')
+    def check_tipos(cls, v):
+        if v in [item.value for item in TiposAgendamento]:
+            return v
+        raise ValueError('Tipo Inválido')
 

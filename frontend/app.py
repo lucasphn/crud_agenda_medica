@@ -1,13 +1,11 @@
 import streamlit as st
+import datetime
 import requests
 import pandas as pd
 
 st.set_page_config(layout="wide")
-
-st.image("logo.png", width=200)
-
-st.title("Gerenciamento de Produtos")
-
+st.image("agendar.png", width=200)
+st.title("Agenda Médica")
 
 # Função auxiliar para exibir mensagens de erro detalhadas
 def show_response_message(response):
@@ -27,49 +25,108 @@ def show_response_message(response):
         except ValueError:
             st.error("Erro desconhecido. Não foi possível decodificar a resposta.")
 
+# Adicionar Agendamento
+with st.expander("Adicionar um Novo Agendamento"):
+    with st.form("new_agendamento"):
+        data_agendada_input = st.text_input('Data do Agendamento (dd-mm-aaaa)')
+        hora_agendada = st.selectbox('Horário de Agendamento', 
+                                     ['9:00','9:30','10:00','10:30','11:00','11:30','12:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'])
+        nome_paciente = st.text_input("Nome do Paciente")
+        nome_medico = st.selectbox('Nome do Médico',
+                                   ['Sarah Maria de Almeida','Catarina Maria de Almeida','Augusto Emanuel de Almeida','Tomás Emanuel de Almeida'])
+        categoria_agendamento = st.selectbox('Tipo do Agendamento',
+                                             ['Consulta', 'Retorno', 'Exames', 'Cirurgias'])
+        price = st.number_input("Valor da Consulta", min_value=0.01, format="%f")
+        email_paciente = st.text_input("Email do Paciente")
+        description = st.text_area("Descrição do Agendamento")
 
-# Adicionar Produto
-with st.expander("Adicionar um Novo Produto"):
-    with st.form("new_product"):
-        name = st.text_input("Nome do Produto")
-        description = st.text_area("Descrição do Produto")
-        price = st.number_input("Preço", min_value=0.01, format="%f")
-        categoria = st.selectbox(
-            "Categoria",
-            ["Eletrônico", "Eletrodoméstico", "Móveis", "Roupas", "Calçados"],
-        )
-        email_fornecedor = st.text_input("Email do Fornecedor")
-        submit_button = st.form_submit_button("Adicionar Produto")
+        submit_button = st.form_submit_button("Adicionar Agendamento")
 
         if submit_button:
+           
+            # Tratamento da data inserida pelo usuário
+
+            # Se o usuário digitar a data com '/' o python trata o dado
+            data_agendada = data_agendada_input.replace('/', '-')
+            # Aqui transformamos a string em data
+            data_agendada = datetime.datetime.strptime(data_agendada, '%d-%m-%Y')
+            # Aqui transformamos a data no modelo padrão aceito pelo banco de dados
+            data_agendada_formatada = data_agendada.strftime('%Y-%m-%d')
+
+            # Fazendo requisição na API
             response = requests.post(
-                "http://backend:8000/products/",
+                "http://backend:8000/agenda/",
                 json={
-                    "name": name,
-                    "description": description,
+                    "data_agendada": data_agendada_formatada,
+                    "hora_agendada": hora_agendada,
+                    "nome_paciente": nome_paciente,
+                    "nome_medico": nome_medico,
+                    "categoria_agendamento": categoria_agendamento,
                     "price": price,
-                    "categoria": categoria,
-                    "email_fornecedor": email_fornecedor,
+                    "email_paciente": email_paciente,
+                    "description": description,
                 },
             )
+
             show_response_message(response)
-# Visualizar Produtos
-with st.expander("Visualizar Produtos"):
-    if st.button("Exibir Todos os Produtos"):
-        response = requests.get("http://backend:8000/products/")
+
+            
+
+# Visualizar Agendamento
+with st.expander("Visualizar Agendamentos"):
+    if st.button("Exibir Todos os Agendamentos"):
+        response = requests.get("http://backend:8000/agenda/")
         if response.status_code == 200:
-            product = response.json()
-            df = pd.DataFrame(product)
+            agendamento = response.json()
+            df = pd.DataFrame(agendamento)
+
+            # Renomear as colunas para nomes mais amigáveis
+            df = df.rename(columns={
+                "id": "ID",
+                "data_agendada": "Data Agendada",
+                "hora_agendada": "Hora Agendada",
+                "nome_paciente": "Nome do Paciente",
+                "nome_medico": "Nome do Médico",
+                "categoria_agendamento": "Categoria de Agendamento",
+                "price": "Preço",
+                "email_paciente": "Email do Paciente",
+                "description": "Descrição",
+                "created_at": "Criado em"
+            })
+
+            # Ordenar o DataFrame por data_agendada e hora_agendada
+            df["data_hora_agendada"] = pd.to_datetime(df["Data Agendada"] + " " + df["Hora Agendada"])
+            df = df.sort_values(by="data_hora_agendada")
+
+            # Excluir a coluna auxiliar
+            df = df.drop(columns=["data_hora_agendada"])
+
+            # Exibe o DataFrame sem o índice
+            st.write(df.to_html(index=False), unsafe_allow_html=True)
+        else:
+            show_response_message(response)
+
+# Obter Detalhes de um Agendamento
+with st.expander("Obter Detalhes de um Agendamento"):
+    get_id = st.number_input("ID do Agendamento", min_value=1, format="%d")
+    if st.button("Buscar Agendamento"):
+        response = requests.get(f"http://backend:8000/agenda/{get_id}")
+        if response.status_code == 200:
+            agendamento = response.json()
+            df = pd.DataFrame([agendamento])
 
             df = df[
                 [
                     "id",
-                    "name",
-                    "description",
+                    "data_agendada",
+                    "hora_agendada",
+                    "nome_paciente",
+                    "nome_medico",
+                    "categoria_agendamento",
                     "price",
-                    "categoria",
-                    "email_fornecedor",
-                    "created_at",
+                    "email_paciente",
+                    "description",
+                    "created_at"
                 ]
             ]
 
@@ -78,74 +135,53 @@ with st.expander("Visualizar Produtos"):
         else:
             show_response_message(response)
 
-# Obter Detalhes de um Produto
-with st.expander("Obter Detalhes de um Produto"):
-    get_id = st.number_input("ID do Produto", min_value=1, format="%d")
-    if st.button("Buscar Produto"):
-        response = requests.get(f"http://backend:8000/products/{get_id}")
-        if response.status_code == 200:
-            product = response.json()
-            df = pd.DataFrame([product])
-
-            df = df[
-                [
-                    "id",
-                    "name",
-                    "description",
-                    "price",
-                    "categoria",
-                    "email_fornecedor",
-                    "created_at",
-                ]
-            ]
-
-            # Exibe o DataFrame sem o índice
-            st.write(df.to_html(index=False), unsafe_allow_html=True)
-        else:
-            show_response_message(response)
-
-# Deletar Produto
-with st.expander("Deletar Produto"):
-    delete_id = st.number_input("ID do Produto para Deletar", min_value=1, format="%d")
-    if st.button("Deletar Produto"):
-        response = requests.delete(f"http://backend:8000/products/{delete_id}")
+# Deletar Agendamento
+with st.expander("Deletar Agendamento"):
+    delete_id = st.number_input("ID do Agendamento para Deletar", min_value=1, format="%d")
+    if st.button("Deletar Agendamento"):
+        response = requests.delete(f"http://backend:8000/agenda/{delete_id}")
         show_response_message(response)
 
 # Atualizar Produto
-with st.expander("Atualizar Produto"):
-    with st.form("update_product"):
-        update_id = st.number_input("ID do Produto", min_value=1, format="%d")
-        new_name = st.text_input("Novo Nome do Produto")
-        new_description = st.text_area("Nova Descrição do Produto")
-        new_price = st.number_input(
-            "Novo Preço",
-            min_value=0.01,
-            format="%f",
-        )
-        new_categoria = st.selectbox(
-            "Nova Categoria",
-            ["Eletrônico", "Eletrodoméstico", "Móveis", "Roupas", "Calçados"],
-        )
-        new_email = st.text_input("Novo Email do Fornecedor")
+with st.expander("Atualizar Agendamento"):
+    with st.form("update_agendamento"):
+        update_id = st.number_input("ID do Agendamento", min_value=1, format="%d")
+        new_data_agendada = st.text_input('Data do Agendamento')
+        new_hora_agendada = st.selectbox('Horário de Agendamento', 
+                                     ['9:00','9:30','10:00','10:30','11:00','11:30','12:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'])
+        new_nome_paciente = st.text_input("Nome do Paciente")
+        new_nome_medico = st.selectbox('Nome do Médico',
+                                   ['Sarah Maria de Almeida','Catarina Maria de Almeida','Augusto Emanuel de Almeida','Tomás Emanuel de Almeida'])
+        new_categoria_agendamento = st.selectbox('Tipo do Agendamento',
+                                             ['Consulta', 'Retorno', 'Exames', 'Cirurgias'])
+        new_price = st.number_input("Valor da Consulta", min_value=0.01, format="%f")
+        new_email_paciente = st.text_input("Email do Paciente")
+        new_description = st.text_area("Descrição do Agendamento")
 
-        update_button = st.form_submit_button("Atualizar Produto")
+        update_button = st.form_submit_button("Atualizar Agendamento")
 
         if update_button:
             update_data = {}
-            if new_name:
-                update_data["name"] = new_name
-            if new_description:
-                update_data["description"] = new_description
+            if new_data_agendada:
+                update_data["data_agendada"] = new_data_agendada
+            if new_hora_agendada:
+                update_data["hora_agendada"] = new_hora_agendada
+            if new_nome_paciente:
+                update_data["nome_paciente"] = new_nome_paciente
+            if new_nome_medico:
+                update_data["nome_medico"] = new_nome_medico
+            if new_categoria_agendamento:
+                update_data["categoria_agendamento"] = new_categoria_agendamento
             if new_price > 0:
                 update_data["price"] = new_price
-            if new_email:
-                update_data["email_fornecedor"] = new_email
-            if new_categoria:
-                update_data["categoria"] = new_categoria
+            if new_email_paciente:
+                update_data["email_paciente"] = new_email_paciente 
+            if new_description:
+                update_data["description"] = new_description
 
             if update_data:
                 response = requests.put(
-                    f"http://backend:8000/products/{update_id}", json=update_data
+                    f"http://backend:8000/agenda/{update_id}", json=update_data
                 )
                 show_response_message(response)
             else:
