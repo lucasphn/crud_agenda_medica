@@ -5,7 +5,7 @@ from schemas import AgendaResponse, AgendaUpdate, AgendaCreate
 from schemas_cliente import ClienteResponse, ClienteUpdate, ClienteCreate
 from typing import List
 from crud import (create_agendamento, get_agendamentos, get_agendamento, delete_agendamento, update_agendamento)
-from crud_cliente import (create_cliente, get_clientes, get_cliente, delete_cliente, update_cliente)
+from crud_cliente import (create_cliente, get_clientes, get_cliente,get_cliente_name, delete_cliente, update_cliente)
 
 '''
 Aqui neste arquivo vamos transformar todas as nossas funções do crud em requisições de uma API que irá se comunicar com o nosso banco de dados
@@ -59,10 +59,19 @@ def read_all_cliente_route(db: Session = Depends(get_db)):
     clientes = get_clientes(db)
     return clientes
 
-# SELECT de um cliente específico
-@router.get("/clientes/{id_cliente}", response_model=ClienteResponse)
+
+# SELECT de um cliente específico por ID
+@router.get("/clientes/id/{id_cliente}", response_model=ClienteResponse)
 def read_cliente_route(id_cliente: int, db: Session = Depends(get_db)):
     db_cliente = get_cliente(db, id_cliente=id_cliente)
+    if db_cliente is None:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado. Tente outro código, por favor.")
+    return db_cliente
+
+# SELECT de um cliente específico por nome
+@router.get("/clientes/nome/{nome_cliente}", response_model=ClienteResponse)
+def read_cliente_nome_route(nome_cliente: str, db: Session = Depends(get_db)):
+    db_cliente = get_cliente_name(db, nome=nome_cliente)
     if db_cliente is None:
         raise HTTPException(status_code=404, detail="Cliente não encontrado. Tente outro código, por favor.")
     return db_cliente

@@ -107,7 +107,7 @@ with st.expander("Visualizar Clientes"):
 with st.expander("Obter Detalhes de um Cliente"):
     get_id = st.number_input("ID do Cliente", min_value=1, format="%d")
     if st.button("Buscar Cliente"):
-        response = requests.get(f"http://backend:8000/clientes/{get_id}")
+        response = requests.get(f"http://backend:8000/clientes/id/{get_id}")
         if response.status_code == 200:
             clientes = response.json()
             df = pd.DataFrame([clientes])

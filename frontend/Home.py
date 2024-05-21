@@ -25,50 +25,80 @@ def show_response_message(response):
         except ValueError:
             st.error("Erro desconhecido. Não foi possível decodificar a resposta.")
 
+# Função para obter os nomes dos clientes
+def get_client_names():
+    response = requests.get("http://backend:8000/clientes/")
+    if response.status_code == 200:
+        clientes = response.json()
+        return sorted([cliente['nome'] for cliente in clientes])
+    else:
+        st.error("Erro ao obter os nomes dos clientes")
+        return []
+
+# Função para obter os detalhes de um cliente pelo nome
+def get_client_details(nome_cliente):
+    response = requests.get(f"http://backend:8000/clientes/nome/{nome_cliente}")
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error("Erro ao obter os detalhes do cliente")
+        return None
+
+# Obtendo os nomes dos clientes
+client_names = get_client_names()
+
 # Adicionar Agendamento
 with st.expander("Adicionar um Novo Agendamento"):
+    nome_cliente = st.selectbox("Nome do Paciente", options=[""] + client_names)  # Adiciona uma opção vazia
+    email_cliente = ""
+
+    if nome_cliente:
+        cliente = get_client_details(nome_cliente)
+        if cliente:
+            email_cliente = cliente.get("email", "")
+
     with st.form("new_agendamento"):
+
+        nome_paciente = nome_cliente
         data_agendada_input = st.text_input('Data do Agendamento (dd-mm-aaaa)')
         hora_agendada = st.selectbox('Horário de Agendamento', 
-                                     ['9:00','9:30','10:00','10:30','11:00','11:30','12:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'])
-        nome_paciente = st.text_input("Nome do Paciente")
+                                     ['','9:00','9:30','10:00','10:30','11:00','11:30','12:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'])
         nome_medico = st.selectbox('Nome do Médico',
-                                   ['Sarah Maria de Almeida','Catarina Maria de Almeida','Augusto Emanuel de Almeida','Tomás Emanuel de Almeida'])
+                                   ['','Sarah Maria de Almeida','Catarina Maria de Almeida','Augusto Emanuel de Almeida','Tomás Emanuel de Almeida'])
         categoria_agendamento = st.selectbox('Tipo do Agendamento',
-                                             ['Consulta', 'Retorno', 'Exames', 'Cirurgias'])
+                                             ['','Consulta', 'Retorno', 'Exames', 'Cirurgias'])
         price = st.number_input("Valor da Consulta", min_value=0.01, format="%f")
-        email_paciente = st.text_input("Email do Paciente")
+        email_paciente = st.text_input("E-mail do Paciente", value=email_cliente)
         description = st.text_area("Descrição do Agendamento")
-
         submit_button = st.form_submit_button("Adicionar Agendamento")
 
         if submit_button:
-           
-            # Tratamento da data inserida pelo usuário
+            try:
+                # Tratamento da data inserida pelo usuário
+                data_agendada = data_agendada_input.replace('/', '-')
+                # Transformamos a string em data
+                data_agendada = datetime.datetime.strptime(data_agendada, '%d-%m-%Y')
+                # Transformamos a data no modelo padrão aceito pelo banco de dados
+                data_agendada_formatada = data_agendada.strftime('%Y-%m-%d')
 
-            # Se o usuário digitar a data com '/' o python trata o dado
-            data_agendada = data_agendada_input.replace('/', '-')
-            # Aqui transformamos a string em data
-            data_agendada = datetime.datetime.strptime(data_agendada, '%d-%m-%Y')
-            # Aqui transformamos a data no modelo padrão aceito pelo banco de dados
-            data_agendada_formatada = data_agendada.strftime('%Y-%m-%d')
+                # Fazendo requisição na API
+                response = requests.post(
+                    "http://backend:8000/agenda/",
+                    json={
+                        "data_agendada": data_agendada_formatada,
+                        "hora_agendada": hora_agendada,
+                        "nome_paciente": nome_paciente,
+                        "nome_medico": nome_medico,
+                        "categoria_agendamento": categoria_agendamento,
+                        "price": price,
+                        "email_paciente": email_paciente,
+                        "description": description,
+                    },
+                )
 
-            # Fazendo requisição na API
-            response = requests.post(
-                "http://backend:8000/agenda/",
-                json={
-                    "data_agendada": data_agendada_formatada,
-                    "hora_agendada": hora_agendada,
-                    "nome_paciente": nome_paciente,
-                    "nome_medico": nome_medico,
-                    "categoria_agendamento": categoria_agendamento,
-                    "price": price,
-                    "email_paciente": email_paciente,
-                    "description": description,
-                },
-            )
-
-            show_response_message(response)
+                show_response_message(response)
+            except ValueError:
+                st.error("Erro no formato da data. Por favor, use o formato dd-mm-aaaa.")
 
             
 

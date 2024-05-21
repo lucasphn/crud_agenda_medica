@@ -9,6 +9,12 @@ def get_cliente(db: Session, id_cliente: int):
     """
     return db.query(ClienteModel).filter(ClienteModel.id == id_cliente).first()
 
+def get_cliente_name(db: Session, nome: str):
+    """
+    função que recebe um nome e retorna somente ele
+    """
+    return db.query(ClienteModel).filter(ClienteModel.nome == nome).first()
+
 def get_clientes(db: Session):
     """
     função que retorna todos os elementos
