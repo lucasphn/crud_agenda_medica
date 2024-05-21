@@ -5,7 +5,7 @@ import pandas as pd
 
 st.set_page_config(layout="wide")
 st.image("agendar.png", width=200)
-st.title("Cadastro de Clientes")
+st.title("Área do Cliente")
 
 # Função auxiliar para exibir mensagens de erro detalhadas
 def show_response_message(response):
@@ -25,7 +25,18 @@ def show_response_message(response):
         except ValueError:
             st.error("Erro desconhecido. Não foi possível decodificar a resposta.")
 
+# Função para obter os nomes dos clientes
+def get_client_names():
+    response = requests.get("http://backend:8000/clientes/")
+    if response.status_code == 200:
+        clientes = response.json()
+        return sorted([cliente['nome'] for cliente in clientes])
+    else:
+        st.error("Erro ao obter os nomes dos clientes")
+        return []
 
+# Obtendo os nomes dos clientes
+client_names = get_client_names()
 
 with st.expander('Adicionar um Novo Cliente'):
     with st.form('new_cliente'):
@@ -105,9 +116,9 @@ with st.expander("Visualizar Clientes"):
 
 # Obter Detalhes de um Cliente      
 with st.expander("Obter Detalhes de um Cliente"):
-    get_id = st.number_input("ID do Cliente", min_value=1, format="%d")
+    name_client = st.selectbox("Nome do Paciente", options=[""] + client_names)
     if st.button("Buscar Cliente"):
-        response = requests.get(f"http://backend:8000/clientes/id/{get_id}")
+        response = requests.get(f"http://backend:8000/clientes/nome/{name_client}")
         if response.status_code == 200:
             clientes = response.json()
             df = pd.DataFrame([clientes])
@@ -127,10 +138,42 @@ with st.expander("Obter Detalhes de um Cliente"):
                 "telefone": "Telefone",
                 "created_at": "Criado em:"
             })
+            st.subheader('Informações Cadastrais', divider='rainbow')
+            st.dataframe(df, hide_index = True)
+        # TABELA DE AGENDAMENTOS
 
+        response = requests.get(f"http://backend:8000/agenda/nome/{name_client}")
+        if response.status_code == 200:
+            agendamento = response.json()
+            df = pd.DataFrame([agendamento])
+
+            # Renomear as colunas para nomes mais amigáveis
+            df = df.rename(columns={
+                "id": "ID",
+                "data_agendada": "Data Agendada",
+                "hora_agendada": "Hora Agendada",
+                "nome_paciente": "Nome do Paciente",
+                "nome_medico": "Nome do Médico",
+                "categoria_agendamento": "Categoria de Agendamento",
+                "price": "Preço",
+                "email_paciente": "Email do Paciente",
+                "description": "Descrição",
+                "created_at": "Criado em"
+            })
+
+            # Ordenar o DataFrame por data_agendada e hora_agendada
+            df["data_hora_agendada"] = pd.to_datetime(df["Data Agendada"] + " " + df["Hora Agendada"])
+            df = df.sort_values(by="data_hora_agendada")
+
+            # Excluir a coluna auxiliar
+            df = df.drop(columns=["data_hora_agendada"])
+
+            # Exibe o DataFrame sem o índice
+            st.subheader('Todos os Agendamentos', divider='rainbow')
             st.dataframe(df, hide_index = True)
         else:
             show_response_message(response)
+
 
 # Deletar Cliente
 with st.expander("Excluir Cliente"):

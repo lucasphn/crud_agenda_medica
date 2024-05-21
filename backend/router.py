@@ -4,7 +4,7 @@ from database import SessionLocal, get_db
 from schemas import AgendaResponse, AgendaUpdate, AgendaCreate
 from schemas_cliente import ClienteResponse, ClienteUpdate, ClienteCreate
 from typing import List
-from crud import (create_agendamento, get_agendamentos, get_agendamento, delete_agendamento, update_agendamento)
+from crud import (create_agendamento, get_agendamentos, get_agendamento, get_agendamento_nome, delete_agendamento, update_agendamento)
 from crud_cliente import (create_cliente, get_clientes, get_cliente,get_cliente_name, delete_cliente, update_cliente)
 
 '''
@@ -25,9 +25,16 @@ def read_all_agenda_route(db: Session = Depends(get_db)):
     return agendamentos
 
 # SELECT de um agendamento específico
-@router.get("/agenda/{id_agendamento}", response_model=AgendaResponse)
+@router.get("/agenda/id/{id_agendamento}", response_model=AgendaResponse)
 def read_agendamento_route(id_agendamento: int, db: Session = Depends(get_db)):
     db_agendamento = get_agendamento(db, id_agendamento=id_agendamento)
+    if db_agendamento is None:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado. Tente outro código, por favor.")
+    return db_agendamento
+
+@router.get("/agenda/nome/{nome_paciente}", response_model=AgendaResponse)
+def read_agendamento_nome_route(nome_paciente: str, db: Session = Depends(get_db)):
+    db_agendamento = get_agendamento_nome(db, nome_paciente=nome_paciente)
     if db_agendamento is None:
         raise HTTPException(status_code=404, detail="Agendamento não encontrado. Tente outro código, por favor.")
     return db_agendamento

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from schemas import AgendaUpdate, AgendaCreate
 from models import AgendaModel
 
@@ -7,6 +8,12 @@ def get_agendamento(db: Session, id_agendamento: int):
     função que recebe um id e retorna somente ele
     """
     return db.query(AgendaModel).filter(AgendaModel.id == id_agendamento).first()
+
+def get_agendamento_nome(db: Session, nome_paciente: str):
+    """
+    função que recebe um nome do paciente e retorna somente ele
+    """
+    return db.query(AgendaModel).filter(AgendaModel.nome_paciente == nome_paciente).first()
 
 def get_agendamentos(db: Session):
     """
@@ -18,6 +25,16 @@ def create_agendamento(db: Session, agenda: AgendaCreate):
     """
     função que insere um novo agendamento no banco
     """
+        # Verifica se já existe um agendamento com a mesma data, hora e médico
+    existing_agendamento = db.query(AgendaModel).filter(
+        AgendaModel.data_agendada == agenda.data_agendada,
+        AgendaModel.hora_agendada == agenda.hora_agendada,
+        AgendaModel.nome_medico == agenda.nome_medico
+    ).first()
+
+    if existing_agendamento:
+        raise HTTPException(status_code=400, detail="Já existe um agendamento com essa data e hora para este profissional.")
+
     db_agendamento = AgendaModel(**agenda.model_dump())
     db.add(db_agendamento)
     db.commit()

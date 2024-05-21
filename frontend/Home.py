@@ -146,7 +146,7 @@ with st.expander("Visualizar Agendamentos"):
 with st.expander("Obter Detalhes de um Agendamento"):
     get_id = st.number_input("ID do Agendamento", min_value=1, format="%d")
     if st.button("Buscar Agendamento"):
-        response = requests.get(f"http://backend:8000/agenda/{get_id}")
+        response = requests.get(f"http://backend:8000/agenda/id/{get_id}")
         if response.status_code == 200:
             agendamento = response.json()
             df = pd.DataFrame([agendamento])
