@@ -108,7 +108,7 @@ with st.expander("Visualizar Clientes"):
 
             # Ordenar Dataframe por ordem alfabética
             df = df.sort_values(by = 'Nome Cliente')
-
+            st.subheader('Relatório de Cadastro', divider='rainbow')
             st.dataframe(df, hide_index = True)
         
         else:
@@ -145,32 +145,35 @@ with st.expander("Obter Detalhes de um Cliente"):
         response = requests.get(f"http://backend:8000/agenda/nome/{name_client}")
         if response.status_code == 200:
             agendamento = response.json()
-            df = pd.DataFrame([agendamento])
+            df_agendamentos = pd.DataFrame(agendamento)
 
-            # Renomear as colunas para nomes mais amigáveis
-            df = df.rename(columns={
-                "id": "ID",
-                "data_agendada": "Data Agendada",
-                "hora_agendada": "Hora Agendada",
-                "nome_paciente": "Nome do Paciente",
-                "nome_medico": "Nome do Médico",
-                "categoria_agendamento": "Categoria de Agendamento",
-                "price": "Preço",
-                "email_paciente": "Email do Paciente",
-                "description": "Descrição",
-                "created_at": "Criado em"
-            })
+            if df_agendamentos.empty:
+                st.error("Nenhum agendamento encontrado para o cliente selecionado.")
+            else:            
+                # Renomear as colunas para nomes mais amigáveis
+                df_agendamentos = df_agendamentos.rename(columns={
+                    "id": "ID",
+                    "data_agendada": "Data Agendada",
+                    "hora_agendada": "Hora Agendada",
+                    "nome_paciente": "Nome do Paciente",
+                    "nome_medico": "Nome do Médico",
+                    "categoria_agendamento": "Categoria de Agendamento",
+                    "price": "Preço",
+                    "email_paciente": "Email do Paciente",
+                    "description": "Descrição",
+                    "created_at": "Criado em"
+                })
 
-            # Ordenar o DataFrame por data_agendada e hora_agendada
-            df["data_hora_agendada"] = pd.to_datetime(df["Data Agendada"] + " " + df["Hora Agendada"])
-            df = df.sort_values(by="data_hora_agendada")
+                # Ordenar o DataFrame por data_agendada e hora_agendada
+                df_agendamentos["data_hora_agendada"] = pd.to_datetime(df_agendamentos["Data Agendada"] + " " + df_agendamentos["Hora Agendada"])
+                df_agendamentos = df_agendamentos.sort_values(by="data_hora_agendada")
 
-            # Excluir a coluna auxiliar
-            df = df.drop(columns=["data_hora_agendada"])
+                # Excluir a coluna auxiliar
+                df_agendamentos = df_agendamentos.drop(columns=["data_hora_agendada"])
 
-            # Exibe o DataFrame sem o índice
-            st.subheader('Todos os Agendamentos', divider='rainbow')
-            st.dataframe(df, hide_index = True)
+                # Exibe o DataFrame sem o índice
+                st.subheader('Todos os Agendamentos', divider='rainbow')
+                st.dataframe(df_agendamentos, hide_index = True)
         else:
             show_response_message(response)
 

@@ -47,6 +47,19 @@ def get_client_details(nome_cliente):
 # Obtendo os nomes dos clientes
 client_names = get_client_names()
 
+# Função para obter os nomes dos profissionais
+def get_profisional_names():
+    response = requests.get("http://backend:8000/profissional/")
+    if response.status_code == 200:
+        profissionais = response.json()
+        return sorted([profissional['nome'] for profissional in profissionais])
+    else:
+        st.error("Erro ao obter os nomes dos profissionais")
+        return []
+
+# Obtendo os nomes dos profissionais
+profissionais_names = get_profisional_names()
+
 # Adicionar Agendamento
 with st.expander("Adicionar um Novo Agendamento"):
     nome_cliente = st.selectbox("Nome do Paciente", options=[""] + client_names)  # Adiciona uma opção vazia
@@ -63,8 +76,7 @@ with st.expander("Adicionar um Novo Agendamento"):
         data_agendada_input = st.text_input('Data do Agendamento (dd-mm-aaaa)')
         hora_agendada = st.selectbox('Horário de Agendamento', 
                                      ['','9:00','9:30','10:00','10:30','11:00','11:30','12:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'])
-        nome_medico = st.selectbox('Nome do Médico',
-                                   ['','Sarah Maria de Almeida','Catarina Maria de Almeida','Augusto Emanuel de Almeida','Tomás Emanuel de Almeida'])
+        nome_medico = st.selectbox("Nome do Profissional", options=[""] + profissionais_names)
         categoria_agendamento = st.selectbox('Tipo do Agendamento',
                                              ['','Consulta', 'Retorno', 'Exames', 'Cirurgias'])
         price = st.number_input("Valor da Consulta", min_value=0.01, format="%f")
@@ -131,11 +143,8 @@ with st.expander("Visualizar Agendamentos"):
             # Excluir a coluna auxiliar
             df = df.drop(columns=["data_hora_agendada"])
 
-            # Exibe o DataFrame sem o índice
-            # st.write(df.to_html(index=False), unsafe_allow_html=True) # Exibir como HTML
-
-
             # Exibir o DataFrame sem o índice
+            st.subheader('Relatório de Cadastro', divider='rainbow')
             st.dataframe(df, hide_index = True) # Tabela Dinâmica
             
             #st.table(df_reset) (Tabela estática)

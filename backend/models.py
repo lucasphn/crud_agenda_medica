@@ -38,3 +38,11 @@ class ClienteModel(Base):
     email = Column(String, index=True)
     telefone = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), default = func.now(), index=True)
+
+class ProfissionalModel(Base):
+    __tablename__ = 'cadastro_profissional'
+
+    id = Column(Integer, primary_key = True, index = True)
+    nome = Column(String, index=True)
+    area_atuacao = Column(String, index=True)
+    created_at = Column(DateTime(timezone=True), default = func.now(), index=True)   

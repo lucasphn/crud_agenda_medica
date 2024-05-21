@@ -20,12 +20,6 @@ class HoraBase(Enum):
     hora14 = '16:30'
     hora15 = '17:00'
 
-class NomeMedicos(Enum):
-    medico1 = 'Sarah Maria de Almeida'
-    medico2 = 'Catarina Maria de Almeida'
-    medico3 = 'Augusto Emanuel de Almeida'
-    medico4 = 'Tomás Emanuel de Almeida'
-
 class TiposAgendamento(Enum):
     tipo1 = 'Consulta'
     tipo2 = 'Retorno'
@@ -47,12 +41,6 @@ class AgendaBase(BaseModel):
         if v in [item.value for item in HoraBase]:
             return v
         raise ValueError('Hora Inválida')
-
-    @validator('nome_medico')
-    def check_medicos(cls, v):
-        if v in [item.value for item in NomeMedicos]:
-            return v
-        raise ValueError('Nome Inválido')
 
     @validator('categoria_agendamento')
     def check_tipos(cls, v):

@@ -13,7 +13,13 @@ def get_agendamento_nome(db: Session, nome_paciente: str):
     """
     função que recebe um nome do paciente e retorna somente ele
     """
-    return db.query(AgendaModel).filter(AgendaModel.nome_paciente == nome_paciente).first()
+    return db.query(AgendaModel).filter(AgendaModel.nome_paciente == nome_paciente).all()
+
+def get_agendamento_profissional(db: Session, nome_profissional: str):
+    """
+    função que recebe um nome do paciente e retorna somente ele
+    """
+    return db.query(AgendaModel).filter(AgendaModel.nome_medico == nome_profissional).all()
 
 def get_agendamentos(db: Session):
     """
