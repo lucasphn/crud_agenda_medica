@@ -102,7 +102,13 @@ with st.expander("Visualizar Agendamentos"):
             df = df.drop(columns=["data_hora_agendada"])
 
             # Exibe o DataFrame sem o índice
-            st.write(df.to_html(index=False), unsafe_allow_html=True)
+            # st.write(df.to_html(index=False), unsafe_allow_html=True) # Exibir como HTML
+
+
+            # Exibir o DataFrame sem o índice
+            st.dataframe(df, hide_index = True) # Tabela Dinâmica
+            
+            #st.table(df_reset) (Tabela estática)
         else:
             show_response_message(response)
 
@@ -115,23 +121,23 @@ with st.expander("Obter Detalhes de um Agendamento"):
             agendamento = response.json()
             df = pd.DataFrame([agendamento])
 
-            df = df[
-                [
-                    "id",
-                    "data_agendada",
-                    "hora_agendada",
-                    "nome_paciente",
-                    "nome_medico",
-                    "categoria_agendamento",
-                    "price",
-                    "email_paciente",
-                    "description",
-                    "created_at"
-                ]
-            ]
+            # Renomear as colunas para nomes mais amigáveis
+            df = df.rename(columns={
+                "id": "ID",
+                "data_agendada": "Data Agendada",
+                "hora_agendada": "Hora Agendada",
+                "nome_paciente": "Nome do Paciente",
+                "nome_medico": "Nome do Médico",
+                "categoria_agendamento": "Categoria de Agendamento",
+                "price": "Preço",
+                "email_paciente": "Email do Paciente",
+                "description": "Descrição",
+                "created_at": "Criado em"
+            })
 
             # Exibe o DataFrame sem o índice
-            st.write(df.to_html(index=False), unsafe_allow_html=True)
+            # st.write(df.to_html(index=False), unsafe_allow_html=True)
+            st.dataframe(df, hide_index = True)
         else:
             show_response_message(response)
 
