@@ -25,6 +25,8 @@ def show_response_message(response):
         except ValueError:
             st.error("Erro desconhecido. Não foi possível decodificar a resposta.")
 
+
+
 with st.expander('Adicionar um Novo Cliente'):
     with st.form('new_cliente'):
         nome_do_cliente = st.text_input('Nome do Cliente')
@@ -67,7 +69,7 @@ with st.expander('Adicionar um Novo Cliente'):
                 },
             )
 
-            show_response_message(response)        
+            show_response_message(response)      
 
 # Visualizar Todos os Clientes
 with st.expander("Visualizar Clientes"):

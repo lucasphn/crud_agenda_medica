@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from schemas_cliente import ClienteUpdate, ClienteCreate
 from models import ClienteModel
 
@@ -18,6 +19,14 @@ def create_cliente(db: Session, cliente: ClienteCreate):
     """
     função que insere um novo cliente no banco
     """
+
+    # Verificação de CPF e nome duplicados pode continuar no ORM
+    if db.query(ClienteModel).filter(ClienteModel.cpf == cliente.cpf).first():
+        raise HTTPException(status_code=400, detail="CPF já cadastrado.")
+    if db.query(ClienteModel).filter(ClienteModel.nome == cliente.nome).first():
+        raise HTTPException(status_code=400, detail="Nome já cadastrado.")
+
+    # Criar novo cliente
     db_novo_registro = ClienteModel(**cliente.model_dump())
     db.add(db_novo_registro)
     db.commit()
