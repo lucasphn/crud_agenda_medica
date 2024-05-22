@@ -1,12 +1,3 @@
-databases:
-  - name: mydatabase
-    type: postgres
-    version: "13"
-    plan: free
-    properties:
-      DATABASE_USER: user
-      DATABASE_PASSWORD: password
-
 services:
   - type: web
     name: backend
