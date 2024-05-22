@@ -1,0 +1,36 @@
+databases:
+  - name: mydatabase
+    type: postgres
+    version: 13
+    plan: free
+    properties:
+      DATABASE_USER: user
+      DATABASE_PASSWORD: password
+
+services:
+  - type: web
+    name: backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    buildCommand: ""
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port 8000"
+    envVars:
+      DATABASE_URL: "postgres://user:password@mydatabase:5432/mydatabase"
+    ports:
+      - 8000
+    autoDeploy: true
+
+  - type: web
+    name: frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    buildCommand: ""
+    startCommand: "streamlit run Home.py"
+    ports:
+      - 8501
+    autoDeploy: true
+
+volumes:
+  - name: postgres_data
+    mountPath: /var/lib/postgresql/data
+    service: backend
